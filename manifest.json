@@ -1,0 +1,12 @@
+{
+  "domain": "nanobot",
+  "name": "Nanobot",
+  "after_dependencies": ["assist_pipeline", "intent"],
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": ["conversation"],
+  "documentation": "https://github.com/unitree/nanobot",
+  "integration_type": "service",
+  "iot_class": "local_polling",
+  "version": "1.0.0"
+}

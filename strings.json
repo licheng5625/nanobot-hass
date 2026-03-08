@@ -1,0 +1,20 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_service%]"
+    },
+    "step": {
+      "user": {
+        "description": "This will enable nanobot as a conversation agent.\n\nNanobot must connect to Home Assistant's WebSocket API using a long-lived access token.\n\nSee [documentation]({docs_url}) for setup instructions.",
+        "title": "Set up Nanobot"
+      }
+    }
+  },
+  "entity": {
+    "conversation": {
+      "nanobot": {
+        "name": "Nanobot"
+      }
+    }
+  }
+}
