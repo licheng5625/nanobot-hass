@@ -10,6 +10,10 @@ Flow:
 4. Nanobot processes with LLM
 5. Nanobot fires event: nanobot_conversation_response
 6. HA receives response and returns to user
+
+Async notifications:
+- Nanobot can also fire nanobot_notification events
+- These create persistent notifications in HA
 """
 
 from __future__ import annotations
@@ -28,6 +32,7 @@ from .const import (
     DOMAIN,
     EVENT_CONVERSATION_REQUEST,
     EVENT_CONVERSATION_RESPONSE,
+    EVENT_NOTIFICATION,
     LOGGER,
 )
 
@@ -65,9 +70,36 @@ async def async_setup_entry(hass: HomeAssistant, entry: NanobotConfigEntry) -> b
         else:
             LOGGER.warning("Received response for unknown request: %s", request_id)
 
+    @callback
+    def handle_notification(event: Event) -> None:
+        """Handle async notification from nanobot via WebSocket."""
+        title = event.data.get("title", "Nanobot")
+        message = event.data.get("message", "")
+        notification_id = event.data.get("notification_id")
+
+        LOGGER.info("Received notification from nanobot: %s", title)
+
+        # Create persistent notification in HA
+        hass.async_create_task(
+            hass.services.async_call(
+                "persistent_notification",
+                "create",
+                {
+                    "title": title,
+                    "message": message,
+                    "notification_id": notification_id or f"nanobot_{id(event)}",
+                },
+            )
+        )
+
     # Listen for responses from nanobot
     entry.async_on_unload(
         hass.bus.async_listen(EVENT_CONVERSATION_RESPONSE, handle_response)
+    )
+
+    # Listen for async notifications from nanobot
+    entry.async_on_unload(
+        hass.bus.async_listen(EVENT_NOTIFICATION, handle_notification)
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
