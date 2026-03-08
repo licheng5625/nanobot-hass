@@ -99,6 +99,7 @@ The integration uses Home Assistant events for communication:
 |-------|-----------|-------------|
 | `nanobot_conversation_request` | HA → Nanobot | User input from Assist |
 | `nanobot_conversation_response` | Nanobot → HA | AI response |
+| `nanobot_notification` | Nanobot → HA | Async notification (optional) |
 
 ### Request Format
 ```json
@@ -118,6 +119,26 @@ The integration uses Home Assistant events for communication:
   "conversation_id": "session-id"
 }
 ```
+
+> **Note**: The same `request_id` can receive multiple responses. The first response is returned to the conversation UI; subsequent responses are automatically converted to persistent notifications.
+
+### Notification Format (Optional)
+```json
+{
+  "title": "Notification Title",
+  "message": "Notification body",
+  "notification_id": "optional-unique-id"
+}
+```
+
+## Async Notifications
+
+When nanobot runs background tasks (e.g., subagent spawn), follow-up responses are automatically converted to Home Assistant persistent notifications. This works because:
+
+1. **First response**: Returned to the conversation UI as normal
+2. **Subsequent responses** (same `request_id`): Converted to persistent notifications
+
+This enables nanobot to report back after long-running tasks without blocking the conversation.
 
 ## Device Control
 

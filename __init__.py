@@ -66,9 +66,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: NanobotConfigEntry) -> b
 
         future = entry.runtime_data.pending_requests.get(request_id)
         if future and not future.done():
+            # First response: return to conversation agent
             future.set_result(event.data)
         else:
-            LOGGER.warning("Received response for unknown request: %s", request_id)
+            # Subsequent response (same request_id): convert to notification
+            response = event.data.get("response", "")
+            if response:
+                LOGGER.info("Converting follow-up response to notification: %s", request_id)
+                hass.async_create_task(
+                    hass.services.async_call(
+                        "persistent_notification",
+                        "create",
+                        {
+                            "title": "Nanobot",
+                            "message": response,
+                            "notification_id": f"nanobot_{request_id[:8]}",
+                        },
+                    )
+                )
+                LOGGER.debug("Created notification for request: %s", request_id)
 
     @callback
     def handle_notification(event: Event) -> None:
